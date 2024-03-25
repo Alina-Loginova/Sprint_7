@@ -6,16 +6,15 @@ from urls import CREATE_COURIER
 @allure.suite('Регистрация курьера')
 class TestCreateCourier:
     @allure.title('Успешная регистрация курьера')
-    def test_create_new_courier(self, register_new_courier_and_return_response):
-        assert register_new_courier_and_return_response.status_code == 201 and register_new_courier_and_return_response.text == '{"ok":true}'
+    def test_create_new_courier(self, register_new_courier):
+        assert register_new_courier['response'].status_code == 201 and register_new_courier['response'].text == '{"ok":true}'
     
     @allure.title('Повторная регистрация курьера')
-    def test_create_used_courier(self, register_new_courier_and_return_login_password):
-        print(register_new_courier_and_return_login_password)
+    def test_create_used_courier(self, register_new_courier):
         payload = {
-            "login": register_new_courier_and_return_login_password[0],
-            "password": register_new_courier_and_return_login_password[1],
-            "firstName": register_new_courier_and_return_login_password[2]
+            "login": register_new_courier['login_pass']['login'],
+            "password": register_new_courier['login_pass']['password'],
+            "firstName": register_new_courier['login_pass']['password']
         }
         response = requests.post(CREATE_COURIER, data=payload)
         assert response.status_code == 409 and response.json().get('message')== "Этот логин уже используется. Попробуйте другой."
@@ -38,10 +37,3 @@ class TestCreateCourier:
         del payload['firstName']
         response = requests.post(CREATE_COURIER, data=payload)
         assert response.status_code == 201 and response.text == '{"ok":true}'
-
-    @allure.title('Регистрация курьера дважды')
-    def test_create_same_couriers(self, generate_payload):
-        payload = generate_payload
-        response = requests.post(CREATE_COURIER, data=payload)
-        response = requests.post(CREATE_COURIER, data=payload)
-        assert response.status_code == 409 and response.json().get('message')== "Этот логин уже используется. Попробуйте другой."
